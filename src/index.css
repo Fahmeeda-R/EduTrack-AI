@@ -1,0 +1,175 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --et-surface: #fef9f1;
+  --et-surface-bright: #fef9f1;
+  --et-surface-dim: #ded9d2;
+  --et-surface-container-lowest: #ffffff;
+  --et-surface-container-low: #f8f3eb;
+  --et-surface-container: #f2ede5;
+  --et-surface-container-high: #ece8e0;
+  --et-surface-container-highest: #e7e2da;
+  --et-surface-variant: #e7e2da;
+  --et-on-surface: #1d1c17;
+  --et-on-surface-variant: #54433f;
+  --et-outline: #87726e;
+  --et-outline-variant: #dac1bb;
+  --et-primary: #813927;
+  --et-on-primary: #ffffff;
+  --et-primary-container: #9f503c;
+  --et-on-primary-container: #ffdfd7;
+  --et-primary-fixed: #ffdad2;
+  --et-primary-fixed-dim: #ffb4a2;
+  --et-on-primary-fixed: #3c0700;
+  --et-on-primary-fixed-variant: #773120;
+  --et-secondary: #934a32;
+  --et-on-secondary: #ffffff;
+  --et-secondary-container: #ffa183;
+  --et-on-secondary-container: #78351f;
+  --et-secondary-fixed: #ffdbd0;
+  --et-secondary-fixed-dim: #ffb59e;
+  --et-on-secondary-fixed: #3a0b00;
+  --et-on-secondary-fixed-variant: #75331d;
+  --et-tertiary: #71442b;
+  --et-on-tertiary: #ffffff;
+  --et-tertiary-container: #8d5b41;
+  --et-on-tertiary-container: #ffe0d2;
+  --et-tertiary-fixed: #ffdbcb;
+  --et-on-tertiary-fixed: #331201;
+  --et-on-tertiary-fixed-variant: #683c24;
+  --et-error: #ba1a1a;
+  --et-on-error: #ffffff;
+  --et-error-container: #ffdad6;
+  --et-on-error-container: #93000a;
+  --et-inverse-surface: #32302b;
+  --et-inverse-on-surface: #f5f0e8;
+}
+
+.dark {
+  --et-surface: #181612;
+  --et-surface-bright: #25221d;
+  --et-surface-dim: #12100d;
+  --et-surface-container-lowest: #221f1a;
+  --et-surface-container-low: #28241f;
+  --et-surface-container: #2e2a24;
+  --et-surface-container-high: #38332c;
+  --et-surface-container-highest: #433d35;
+  --et-surface-variant: #433d35;
+  --et-on-surface: #f5efe6;
+  --et-on-surface-variant: #d5c3bd;
+  --et-outline: #a38f8a;
+  --et-outline-variant: #54433f;
+  --et-primary: #ffb4a2;
+  --et-on-primary: #4b1507;
+  --et-primary-container: #9f503c;
+  --et-on-primary-container: #ffdfd7;
+  --et-primary-fixed: #5e2415;
+  --et-primary-fixed-dim: #e09684;
+  --et-on-primary-fixed: #ffdad2;
+  --et-on-primary-fixed-variant: #ffb4a2;
+  --et-secondary: #ffb59e;
+  --et-on-secondary: #4c1909;
+  --et-secondary-container: #75331d;
+  --et-on-secondary-container: #ffdbd0;
+  --et-secondary-fixed: #5a2716;
+  --et-secondary-fixed-dim: #e09882;
+  --et-on-secondary-fixed: #ffdbd0;
+  --et-on-secondary-fixed-variant: #ffb59e;
+  --et-tertiary: #f8b899;
+  --et-on-tertiary: #421f0c;
+  --et-tertiary-container: #683c24;
+  --et-on-tertiary-container: #ffdbcb;
+  --et-tertiary-fixed: #55311d;
+  --et-on-tertiary-fixed: #ffdbcb;
+  --et-on-tertiary-fixed-variant: #f8b899;
+  --et-error: #ffb4ab;
+  --et-on-error: #690005;
+  --et-error-container: #681414;
+  --et-on-error-container: #ffdad6;
+  --et-inverse-surface: #efe8de;
+  --et-inverse-on-surface: #221f1a;
+}
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-surface: var(--et-surface);
+  --color-surface-bright: var(--et-surface-bright);
+  --color-surface-dim: var(--et-surface-dim);
+  --color-surface-container-lowest: var(--et-surface-container-lowest);
+  --color-surface-container-low: var(--et-surface-container-low);
+  --color-surface-container: var(--et-surface-container);
+  --color-surface-container-high: var(--et-surface-container-high);
+  --color-surface-container-highest: var(--et-surface-container-highest);
+  --color-surface-variant: var(--et-surface-variant);
+  --color-on-surface: var(--et-on-surface);
+  --color-on-surface-variant: var(--et-on-surface-variant);
+  --color-outline: var(--et-outline);
+  --color-outline-variant: var(--et-outline-variant);
+  --color-primary: var(--et-primary);
+  --color-on-primary: var(--et-on-primary);
+  --color-primary-container: var(--et-primary-container);
+  --color-on-primary-container: var(--et-on-primary-container);
+  --color-primary-fixed: var(--et-primary-fixed);
+  --color-primary-fixed-dim: var(--et-primary-fixed-dim);
+  --color-on-primary-fixed: var(--et-on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--et-on-primary-fixed-variant);
+  --color-secondary: var(--et-secondary);
+  --color-on-secondary: var(--et-on-secondary);
+  --color-secondary-container: var(--et-secondary-container);
+  --color-on-secondary-container: var(--et-on-secondary-container);
+  --color-secondary-fixed: var(--et-secondary-fixed);
+  --color-secondary-fixed-dim: var(--et-secondary-fixed-dim);
+  --color-on-secondary-fixed: var(--et-on-secondary-fixed);
+  --color-on-secondary-fixed-variant: var(--et-on-secondary-fixed-variant);
+  --color-tertiary: var(--et-tertiary);
+  --color-on-tertiary: var(--et-on-tertiary);
+  --color-tertiary-container: var(--et-tertiary-container);
+  --color-on-tertiary-container: var(--et-on-tertiary-container);
+  --color-tertiary-fixed: var(--et-tertiary-fixed);
+  --color-on-tertiary-fixed: var(--et-on-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--et-on-tertiary-fixed-variant);
+  --color-error: var(--et-error);
+  --color-on-error: var(--et-on-error);
+  --color-error-container: var(--et-error-container);
+  --color-on-error-container: var(--et-on-error-container);
+  --color-inverse-surface: var(--et-inverse-surface);
+  --color-inverse-on-surface: var(--et-inverse-on-surface);
+  --color-background: var(--et-surface);
+  --color-on-background: var(--et-on-surface);
+}
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background-color: var(--et-surface);
+    color: var(--et-on-surface);
+  }
+  body {
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+}
+
+.material-symbols-filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+}

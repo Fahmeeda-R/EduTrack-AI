@@ -1,0 +1,8 @@
+{
+  "name": "EduTrack AI",
+  "description": "Academic management, assignment tracking, adaptive AI study planning, rubric pre-flight, and faculty course operations platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
