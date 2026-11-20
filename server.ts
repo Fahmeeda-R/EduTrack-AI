@@ -2,7 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { requireAuth, type AuthRequest } from './src/middleware/auth.ts';
+import { requireAuth, resolveAuthUser, type AuthRequest } from './src/middleware/auth.ts';
+import { testDbConnection } from './src/db/index.ts';
+import { isSupabaseConfigured } from './src/lib/supabase.ts';
 import {
   appendChatMessage,
   clearChatMessages,
@@ -39,6 +41,26 @@ async function startServer() {
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  // Supabase & PostgreSQL Connection Diagnostic
+  app.get('/api/supabase/status', async (_req, res) => {
+    try {
+      const dbStatus = await testDbConnection();
+      const supabaseConfigured = isSupabaseConfigured();
+
+      res.json({
+        supabaseClientConfigured: supabaseConfigured,
+        supabaseUrl: process.env.SUPABASE_URL ? 'set' : 'missing',
+        supabaseAnonKey: process.env.SUPABASE_ANON_KEY ? 'set' : 'missing',
+        supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing',
+        databaseUrl: process.env.DATABASE_URL || process.env.SUPABASE_DB_URL ? 'set' : 'missing',
+        database: dbStatus,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to query Supabase status';
+      res.status(500).json({ error: message });
+    }
   });
 
   // Authenticated Workspace Bootstrap & Profile Sync
@@ -278,28 +300,31 @@ async function startServer() {
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         try {
-          const { adminAuth } = await import('./src/lib/firebase-admin.ts');
-          const decoded = await adminAuth.verifyIdToken(authHeader.split('Bearer ')[1]);
-          const dbUser = await getOrCreateUser(
-            decoded.uid,
-            decoded.email || 'student@university.edu'
-          );
-          if (!simplify) {
+          const authUser = await resolveAuthUser(authHeader);
+          if (authUser) {
+            const dbUser = await getOrCreateUser(
+              authUser.uid,
+              authUser.email || 'student@university.edu',
+              authUser.name,
+              authUser.picture
+            );
+            if (!simplify) {
+              await appendChatMessage(dbUser.id, {
+                role: 'user',
+                content: prompt,
+                courseScope: courseScope || 'Operating Systems',
+                timestampLabel: nowLabel,
+              });
+            }
             await appendChatMessage(dbUser.id, {
-              role: 'user',
-              content: prompt,
+              role: 'assistant',
+              content: reply.explanation,
               courseScope: courseScope || 'Operating Systems',
+              codeSnippet: reply.codeSnippet,
+              codeFilename: reply.codeFilename,
               timestampLabel: nowLabel,
             });
           }
-          await appendChatMessage(dbUser.id, {
-            role: 'assistant',
-            content: reply.explanation,
-            courseScope: courseScope || 'Operating Systems',
-            codeSnippet: reply.codeSnippet,
-            codeFilename: reply.codeFilename,
-            timestampLabel: nowLabel,
-          });
         } catch (persistErr) {
           console.error('Non-fatal chat persistence error:', persistErr);
         }
@@ -330,15 +355,18 @@ async function startServer() {
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ') && assignmentId) {
         try {
-          const { adminAuth } = await import('./src/lib/firebase-admin.ts');
-          const decoded = await adminAuth.verifyIdToken(authHeader.split('Bearer ')[1]);
-          const dbUser = await getOrCreateUser(
-            decoded.uid,
-            decoded.email || 'student@university.edu'
-          );
-          await updateAssignment(dbUser.id, Number(assignmentId), {
-            aiRubricResult: result,
-          });
+          const authUser = await resolveAuthUser(authHeader);
+          if (authUser) {
+            const dbUser = await getOrCreateUser(
+              authUser.uid,
+              authUser.email || 'student@university.edu',
+              authUser.name,
+              authUser.picture
+            );
+            await updateAssignment(dbUser.id, Number(assignmentId), {
+              aiRubricResult: result,
+            });
+          }
         } catch (persistErr) {
           console.error('Non-fatal rubric persistence error:', persistErr);
         }
@@ -366,14 +394,17 @@ async function startServer() {
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ') && blocks.length > 0) {
         try {
-          const { adminAuth } = await import('./src/lib/firebase-admin.ts');
-          const decoded = await adminAuth.verifyIdToken(authHeader.split('Bearer ')[1]);
-          const dbUser = await getOrCreateUser(
-            decoded.uid,
-            decoded.email || 'student@university.edu'
-          );
-          const saved = await replaceStudyBlocks(dbUser.id, blocks);
-          return res.json({ blocks: saved });
+          const authUser = await resolveAuthUser(authHeader);
+          if (authUser) {
+            const dbUser = await getOrCreateUser(
+              authUser.uid,
+              authUser.email || 'student@university.edu',
+              authUser.name,
+              authUser.picture
+            );
+            const saved = await replaceStudyBlocks(dbUser.id, blocks);
+            return res.json({ blocks: saved });
+          }
         } catch (persistErr) {
           console.error('Non-fatal study plan persistence error:', persistErr);
         }
