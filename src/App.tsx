@@ -17,6 +17,7 @@ import {
   AssignmentPublisherView,
   GradebookView,
 } from './components/FacultySecondaryViews.tsx';
+import SupportChatbot from './components/SupportChatbot.tsx';
 
 const EduTrackRouter: React.FC = () => {
   const { activeScreen, authLoading, userProfile } = useEduTrack();
@@ -53,6 +54,7 @@ const EduTrackRouter: React.FC = () => {
       {activeScreen === 'announcements-manager' &&
         (isFaculty ? <AnnouncementsManagerView /> : <DashboardView />)}
       {activeScreen === 'account-settings' && <AccountSettingsView />}
+      {activeScreen === 'support-chatbot' && <SupportChatbot />}
     </AppShell>
   );
 };

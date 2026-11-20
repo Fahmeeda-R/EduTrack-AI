@@ -18,6 +18,7 @@ const SCREEN_TITLES: Record<ScreenId, string> = {
   'assignment-publisher': 'Assignment Publisher',
   'announcements-manager': 'Announcements Manager',
   'account-settings': 'Account Settings',
+  'support-chatbot': 'Student Support Chat',
 };
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -56,6 +57,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     ['calendar', 'Calendar'],
     ['ai-assistant', 'Tutor AI'],
     ['ai-study-planner', 'Study Planner'],
+    ['support-chatbot', 'Support'],
     ...(isFaculty ? ([['academic-management', 'Faculty']] as Array<[ScreenId, string]>) : []),
   ];
 
@@ -271,6 +273,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                   ['ai-assistant', 'auto_awesome', 'AI Academic Assistant'],
                   ['my-documents', 'folder_shared', 'My Documents'],
                   ['ai-study-planner', 'tune', 'AI Study Planner'],
+                  ['support-chatbot', 'support_agent', 'Student Support Chat'],
                 ] as Array<[ScreenId, string, string]>
               ).map(([id, icon, label]) => (
                 <button
@@ -390,6 +393,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               ['assignments', 'fact_check', 'Tasks'],
               ['calendar', 'calendar_today', 'Calendar'],
               ['ai-assistant', 'smart_toy', 'Tutor AI'],
+              ['support-chatbot', 'support_agent', 'Support'],
             ] as Array<[ScreenId, string, string]>
           ).map(([id, icon, label]) => {
             const active = activeScreen === id;

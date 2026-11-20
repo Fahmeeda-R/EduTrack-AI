@@ -12,7 +12,8 @@ export type ScreenId =
   | 'gradebook'
   | 'assignment-publisher'
   | 'announcements-manager'
-  | 'account-settings';
+  | 'account-settings'
+  | 'support-chatbot';
 
 export type UserRole = 'student' | 'faculty' | 'staff';
 
