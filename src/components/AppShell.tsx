@@ -49,7 +49,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     setActiveScreen(screen);
     setDrawerOpen(false);
     setNotifOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
   };
 
   const desktopNavItems: Array<[ScreenId, string]> = [

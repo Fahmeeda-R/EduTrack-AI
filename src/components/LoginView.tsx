@@ -395,11 +395,7 @@ export const LoginView: React.FC = () => {
         <button
           type="button"
           onClick={() => {
-            enterPreviewMode('student');
-            // navigate to support-chatbot via window hash
-            if (typeof window !== 'undefined') {
-              window.location.hash = 'support';
-            }
+            enterPreviewMode('student', undefined, 'support-chatbot');
           }}
           className="px-3.5 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-90 transition-opacity shadow-xs flex-shrink-0 cursor-pointer"
         >

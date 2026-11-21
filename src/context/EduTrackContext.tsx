@@ -50,7 +50,7 @@ interface EduTrackContextValue {
   toast: ToastState | null;
   showToast: (message: string, tone?: 'success' | 'info' | 'error') => void;
   signInWithGoogle: (preferredRole?: UserRole, profileOverrides?: Partial<UserProfile>) => Promise<void>;
-  enterPreviewMode: (role?: UserRole, profileOverrides?: Partial<UserProfile>) => void;
+  enterPreviewMode: (role?: UserRole, profileOverrides?: Partial<UserProfile>, targetScreen?: ScreenId) => void;
   handleSignOut: () => Promise<void>;
   switchRole: (role: UserRole) => Promise<void>;
   updateProfile: (patch: Partial<UserProfile>) => Promise<void>;
@@ -220,6 +220,37 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   useEffect(() => {
+    const handleHashSync = () => {
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const h = window.location.hash.replace('#', '').toLowerCase();
+        if (h === 'support' || h === 'support-chatbot') {
+          setActiveScreenState('support-chatbot');
+          setIsPreviewMode(true);
+          setAuthLoading(false);
+        } else if (h === 'dashboard') {
+          setActiveScreenState('dashboard');
+        } else if (h === 'assignments') {
+          setActiveScreenState('assignments');
+        } else if (h === 'calendar') {
+          setActiveScreenState('calendar');
+        } else if (h === 'ai-assistant') {
+          setActiveScreenState('ai-assistant');
+        } else if (h === 'my-documents') {
+          setActiveScreenState('my-documents');
+        } else if (h === 'announcements') {
+          setActiveScreenState('announcements');
+        } else if (h === 'ai-study-planner') {
+          setActiveScreenState('ai-study-planner');
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashSync);
+    handleHashSync();
+    return () => window.removeEventListener('hashchange', handleHashSync);
+  }, []);
+
+  useEffect(() => {
     // Safety fallback: Never let auth loading get permanently stuck
     const safetyTimer = setTimeout(() => {
       setAuthLoading(false);
@@ -264,6 +295,7 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
           const isFacultyUser = effectiveRole === 'faculty' || effectiveRole === 'staff';
           setActiveScreenState((prev) => {
+            if (prev === 'support-chatbot') return 'support-chatbot';
             if (prev === 'login') {
               return isFacultyUser ? 'academic-management' : 'dashboard';
             }
@@ -273,7 +305,7 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           console.error('Failed to sync Cloud SQL workspace:', err);
           showToast('Signed in, using local fallback while database warms up.', 'info');
           setIsPreviewMode(true);
-          setActiveScreenState((prev) => (prev === 'login' ? 'dashboard' : prev));
+          setActiveScreenState((prev) => (prev === 'support-chatbot' ? 'support-chatbot' : prev === 'login' ? 'dashboard' : prev));
         }
       } else {
         idTokenRef.current = null;
@@ -309,7 +341,11 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   const enterPreviewMode = useCallback(
-    (role: UserRole = 'student', profileOverrides?: Partial<UserProfile>) => {
+    (
+      role: UserRole = 'student',
+      profileOverrides?: Partial<UserProfile>,
+      targetScreen?: ScreenId
+    ) => {
       const isFacultyRole = role === 'faculty' || role === 'staff';
       const workspace = createPreviewWorkspace(isFacultyRole ? 'faculty' : 'student');
       setIsPreviewMode(true);
@@ -325,9 +361,17 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setStudyBlocks(workspace.studyBlocks);
       setChatMessages(workspace.chatMessages);
       setSelectedAssignmentId(workspace.assignments[0]?.id ?? null);
-      setActiveScreenState(isFacultyRole ? 'academic-management' : 'dashboard');
+
+      const destination = targetScreen || (isFacultyRole ? 'academic-management' : 'dashboard');
+      setActiveScreenState(destination);
+      if (typeof window !== 'undefined') {
+        window.location.hash = destination === 'support-chatbot' ? 'support' : destination;
+      }
+      setAuthLoading(false);
       showToast(
-        isFacultyRole
+        destination === 'support-chatbot'
+          ? 'Opened Student Support Hub'
+          : isFacultyRole
           ? 'Entered Faculty Portal preview'
           : 'Entered Student Portal preview',
         'success'
