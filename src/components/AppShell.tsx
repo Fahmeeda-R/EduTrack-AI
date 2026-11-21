@@ -123,7 +123,21 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           </nav>
 
           {/* Header Controls */}
-          <div className="flex items-center gap-1 flex-shrink-0 relative">
+          <div className="flex items-center gap-1.5 flex-shrink-0 relative">
+            <button
+              type="button"
+              onClick={() => navigate('support-chatbot')}
+              className={`h-9 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                activeScreen === 'support-chatbot'
+                  ? 'bg-primary text-on-primary shadow-xs'
+                  : 'bg-primary/10 text-primary hover:bg-primary/20'
+              }`}
+              title="Student Support & AI Chat"
+            >
+              <span className="material-symbols-outlined text-[17px]">support_agent</span>
+              <span>Support</span>
+            </button>
+
             <button
               aria-label="Notifications"
               type="button"

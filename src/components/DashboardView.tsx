@@ -95,6 +95,34 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
+      {/* Student Support Hub Quick Access Banner */}
+      <div className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/30 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-[22px]">support_agent</span>
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs sm:text-sm font-bold text-on-surface">Student Support &amp; AI Helpdesk</h2>
+              <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-700 text-[10px] font-bold">
+                Online
+              </span>
+            </div>
+            <p className="text-xs text-on-surface-variant truncate mt-0.5">
+              Tuition fee payments, course registration, attendance rules, transcripts &amp; FAQs
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setActiveScreen('support-chatbot')}
+          className="px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold flex items-center gap-1.5 hover:opacity-90 transition-opacity shadow-xs cursor-pointer flex-shrink-0"
+        >
+          <span>Open Support Hub</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </button>
+      </div>
+
       {/* Metrics Grid (2 cols mobile, 4 cols desktop) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <button

@@ -381,8 +381,34 @@ export const LoginView: React.FC = () => {
         )}
       </div>
 
+      {/* Support & Helpdesk Quick Access */}
+      <div className="w-full mt-4 p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-[20px]">support_agent</span>
+          </div>
+          <div className="text-left">
+            <p className="text-xs font-bold text-on-surface">Student Support &amp; AI Chat</p>
+            <p className="text-[11px] text-on-surface-variant">Fees, courses, admissions, FAQs</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            enterPreviewMode('student');
+            // navigate to support-chatbot via window hash
+            if (typeof window !== 'undefined') {
+              window.location.hash = 'support';
+            }
+          }}
+          className="px-3.5 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-90 transition-opacity shadow-xs flex-shrink-0 cursor-pointer"
+        >
+          Open Support
+        </button>
+      </div>
+
       {/* FERPA Compliance Footnote */}
-      <div className="mt-6 flex flex-col items-center gap-2 text-center text-on-surface-variant">
+      <div className="mt-5 flex flex-col items-center gap-2 text-center text-on-surface-variant">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant font-mono text-[11px]">
           <span className="material-symbols-outlined text-tertiary text-[16px]">verified</span>
           256-bit SSL Academic Encryption · FERPA Compliant

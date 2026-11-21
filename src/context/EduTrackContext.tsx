@@ -103,10 +103,32 @@ const EduTrackContext = createContext<EduTrackContextValue | null>(null);
 export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const initialPreview = useMemo(() => createPreviewWorkspace('student'), []);
 
+  // Check URL hash for direct deep-linking (e.g. #support or #support-chatbot)
+  const getInitialScreenFromHash = (): ScreenId => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const h = window.location.hash.replace('#', '').toLowerCase();
+      if (h === 'support' || h === 'support-chatbot') return 'support-chatbot';
+      if (h === 'dashboard') return 'dashboard';
+      if (h === 'assignments') return 'assignments';
+      if (h === 'calendar') return 'calendar';
+      if (h === 'ai-assistant') return 'ai-assistant';
+      if (h === 'ai-study-planner') return 'ai-study-planner';
+      if (h === 'my-documents') return 'my-documents';
+      if (h === 'announcements') return 'announcements';
+    }
+    return 'login';
+  };
+
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
-  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
-  const [activeScreen, setActiveScreenState] = useState<ScreenId>('login');
+  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const h = window.location.hash.replace('#', '').toLowerCase();
+      return h === 'support' || h === 'support-chatbot';
+    }
+    return false;
+  });
+  const [activeScreen, setActiveScreenState] = useState<ScreenId>(getInitialScreenFromHash);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(1);
 
   const [userProfile, setUserProfile] = useState<UserProfile>(initialPreview.user);
@@ -187,6 +209,10 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (FACULTY_ONLY_SCREENS.includes(resolved) && !isFaculty) {
           return 'dashboard';
         }
+        if (typeof window !== 'undefined') {
+          const hashVal = resolved === 'support-chatbot' ? 'support' : resolved;
+          window.location.hash = hashVal;
+        }
         return resolved;
       });
     },
@@ -194,7 +220,13 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   useEffect(() => {
+    // Safety fallback: Never let auth loading get permanently stuck
+    const safetyTimer = setTimeout(() => {
+      setAuthLoading(false);
+    }, 2000);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      clearTimeout(safetyTimer);
       setFirebaseUser(user);
       if (user) {
         try {
@@ -231,21 +263,27 @@ export const EduTrackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           }
 
           const isFacultyUser = effectiveRole === 'faculty' || effectiveRole === 'staff';
-          setActiveScreenState((prev) =>
-            prev === 'login' ? (isFacultyUser ? 'academic-management' : 'dashboard') : prev
-          );
+          setActiveScreenState((prev) => {
+            if (prev === 'login') {
+              return isFacultyUser ? 'academic-management' : 'dashboard';
+            }
+            return prev;
+          });
         } catch (err) {
           console.error('Failed to sync Cloud SQL workspace:', err);
           showToast('Signed in, using local fallback while database warms up.', 'info');
           setIsPreviewMode(true);
-          setActiveScreenState('dashboard');
+          setActiveScreenState((prev) => (prev === 'login' ? 'dashboard' : prev));
         }
       } else {
         idTokenRef.current = null;
       }
       setAuthLoading(false);
     });
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(safetyTimer);
+      unsubscribe();
+    };
   }, [apiFetch, showToast]);
 
   const signInWithGoogle = useCallback(

@@ -23,7 +23,7 @@ const EduTrackRouter: React.FC = () => {
   const { activeScreen, authLoading, userProfile } = useEduTrack();
   const isFaculty = userProfile.role === 'faculty' || userProfile.role === 'staff';
 
-  if (authLoading) {
+  if (authLoading && activeScreen !== 'support-chatbot') {
     return (
       <div className="min-h-screen bg-surface text-on-surface flex flex-col items-center justify-center gap-3">
         <span className="material-symbols-outlined text-[36px] text-primary animate-spin">

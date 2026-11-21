@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useEduTrack } from '../context/EduTrackContext.tsx';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -139,9 +138,6 @@ function getTimestamp(): string {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-/**
- * Format markdown text with bolding, code spans, bullet lists, and paragraphs
- */
 export function renderFormattedBotText(text: string | undefined | null): React.ReactNode {
   if (!text || typeof text !== 'string') return null;
   const lines = text.split('\n');
@@ -198,10 +194,6 @@ export function renderFormattedBotText(text: string | undefined | null): React.R
   return <div className="space-y-0.5">{elements}</div>;
 }
 
-/**
- * Robust built-in knowledge matcher: ensures the chatbot ALWAYS gives high quality,
- * specific answers even without network or when offline.
- */
 function getInstantSupportAnswer(query: string, category?: string): {
   reply: string;
   suggestedFollowups: string[];
@@ -340,7 +332,7 @@ function getInstantSupportAnswer(query: string, category?: string): {
     };
   }
 
-  // General helpful university response
+  // General university assistance
   const channelContext = category ? ` regarding **${category}**` : '';
   return {
     reply: `I can help you with that${channelContext}! Official university information, application forms, and policy handbooks are available on the **Student Portal (portal.university.edu)**.\n\nFor personalized in-person assistance, you can visit:\n• **Student Services Centre**: Block A, Room 101 (Mon–Fri, 9:00 AM – 5:00 PM)\n• **Helpdesk Email**: support@university.edu\n• **Student Helpline**: +91-80-2345-6789`,
@@ -375,12 +367,7 @@ const MessageBubble: React.FC<{
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.18 }}
-      className={`flex items-end gap-2.5 mb-3.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
-    >
+    <div className={`flex items-end gap-2.5 mb-3.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {!isUser && (
         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mb-1 shadow-sm">
           <span className="material-symbols-outlined text-on-primary text-[17px]">support_agent</span>
@@ -389,7 +376,7 @@ const MessageBubble: React.FC<{
 
       <div className={`flex flex-col max-w-[84%] sm:max-w-[78%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div
-          className={`px-4 py-3 rounded-2xl shadow-xs ${
+          className={`px-4 py-3 rounded-2xl shadow-xs transition-all ${
             isUser
               ? 'bg-primary text-on-primary rounded-br-xs font-medium text-xs sm:text-sm'
               : 'bg-surface-container-lowest text-on-surface rounded-bl-xs border border-outline-variant/30'
@@ -407,7 +394,7 @@ const MessageBubble: React.FC<{
               <button
                 type="button"
                 onClick={() => onRate(msg.id, 'up')}
-                className={`p-1 rounded-md transition-colors ${
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
                   msg.rating === 'up'
                     ? 'text-primary bg-primary/10'
                     : 'text-outline hover:text-primary hover:bg-surface-container'
@@ -419,7 +406,7 @@ const MessageBubble: React.FC<{
               <button
                 type="button"
                 onClick={() => onRate(msg.id, 'down')}
-                className={`p-1 rounded-md transition-colors ${
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
                   msg.rating === 'down'
                     ? 'text-error bg-error/10'
                     : 'text-outline hover:text-error hover:bg-surface-container'
@@ -431,7 +418,7 @@ const MessageBubble: React.FC<{
               <button
                 type="button"
                 onClick={() => onCopy(msg.text)}
-                className="p-1 rounded-md text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
+                className="p-1 rounded-md text-outline hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
                 title="Copy message"
               >
                 <span className="material-symbols-outlined text-[13px]">content_copy</span>
@@ -448,7 +435,7 @@ const MessageBubble: React.FC<{
                 key={qr}
                 type="button"
                 onClick={() => onQuickReply(qr)}
-                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/30 text-primary bg-surface-container-lowest hover:bg-primary hover:text-on-primary transition-all shadow-xs text-left"
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/30 text-primary bg-surface-container-lowest hover:bg-primary hover:text-on-primary transition-all shadow-xs text-left cursor-pointer"
               >
                 {qr}
               </button>
@@ -456,7 +443,7 @@ const MessageBubble: React.FC<{
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -488,7 +475,6 @@ export const SupportChatbot: React.FC = () => {
   const [faqSearch, setFaqSearch] = useState('');
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(null);
 
-  // Initialize with ready-to-go interactive messages so the user sees support immediately!
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -522,14 +508,12 @@ export const SupportChatbot: React.FC = () => {
     return null;
   }, [firebaseUser]);
 
-  // Unified answer resolver: queries backend endpoint, seamlessly falls back to local knowledge engine
   const resolveBotAnswer = useCallback(
     async (
       question: string,
       history: ChatMessage[],
       category?: string
     ): Promise<{ reply: string; suggestedFollowups: string[] }> => {
-      // 1. Try backend API first
       try {
         const token = await getAuthToken();
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -567,13 +551,11 @@ export const SupportChatbot: React.FC = () => {
         console.warn('Backend support chat call bypassed, using instant engine:', err);
       }
 
-      // 2. Reliable client-side knowledge engine (always answers accurately)
       return getInstantSupportAnswer(question, category);
     },
     [getAuthToken]
   );
 
-  // Send user message
   const handleSendMessage = useCallback(
     async (text?: string) => {
       const question = (text ?? inputValue).trim();
@@ -609,7 +591,6 @@ export const SupportChatbot: React.FC = () => {
     [inputValue, isTyping, messages, activeCategory, resolveBotAnswer]
   );
 
-  // Switch category channel
   const handleSelectCategory = useCallback(
     (cat: ChatCategory) => {
       setSessionTopic(cat.label);
@@ -637,7 +618,6 @@ export const SupportChatbot: React.FC = () => {
     []
   );
 
-  // Ask a specific question immediately in chat
   const handleAskQuickQuestion = useCallback(
     (question: string) => {
       setActiveTab('chat');
@@ -646,7 +626,6 @@ export const SupportChatbot: React.FC = () => {
     [handleSendMessage]
   );
 
-  // Clear chat session
   const handleClearChat = useCallback(() => {
     setMessages([
       {
@@ -721,7 +700,7 @@ export const SupportChatbot: React.FC = () => {
             <button
               type="button"
               onClick={handleClearChat}
-              className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-on-primary/15 hover:bg-on-primary/25 text-on-primary transition-colors flex items-center gap-1.5"
+              className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-on-primary/15 hover:bg-on-primary/25 text-on-primary transition-colors flex items-center gap-1.5 cursor-pointer"
               title="Clear conversation"
             >
               <span className="material-symbols-outlined text-[15px]">refresh</span>
@@ -839,7 +818,7 @@ export const SupportChatbot: React.FC = () => {
                   key={qs}
                   type="button"
                   onClick={() => handleSendMessage(qs)}
-                  className="px-2 py-0.5 rounded-lg bg-surface-container-lowest border border-outline-variant/30 text-on-surface-variant hover:text-primary hover:border-primary/40 truncate flex-shrink-0 transition-colors"
+                  className="px-2 py-0.5 rounded-lg bg-surface-container-lowest border border-outline-variant/30 text-on-surface-variant hover:text-primary hover:border-primary/40 truncate flex-shrink-0 transition-colors cursor-pointer"
                 >
                   {qs}
                 </button>
@@ -920,7 +899,7 @@ export const SupportChatbot: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleAskQuickQuestion(faqSearch)}
-                  className="text-primary font-bold hover:underline"
+                  className="text-primary font-bold hover:underline cursor-pointer"
                 >
                   Ask EduTrack AI this question in Chat →
                 </button>
@@ -1084,7 +1063,6 @@ export const ChatbotWidget: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  // Widget starts with instant, ready greeting
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -1102,7 +1080,6 @@ export const ChatbotWidget: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const widgetInputRef = useRef<HTMLInputElement>(null);
 
-  // Hide on login screen and when already viewing the full Support page
   if (activeScreen === 'login' || activeScreen === 'support-chatbot') {
     return null;
   }
@@ -1132,7 +1109,6 @@ export const ChatbotWidget: React.FC = () => {
     setMessages(nextMessages);
     setIsTyping(true);
 
-    // Try API call first
     let botReply = '';
     let followups: string[] = [];
 
@@ -1160,10 +1136,9 @@ export const ChatbotWidget: React.FC = () => {
         }
       }
     } catch {
-      /* network fallback */
+      /* fallback */
     }
 
-    // Seamless instant fallback
     if (!botReply) {
       const fallbackResult = getInstantSupportAnswer(question);
       botReply = fallbackResult.reply;
@@ -1193,127 +1168,117 @@ export const ChatbotWidget: React.FC = () => {
   return (
     <div className="fixed bottom-20 lg:bottom-6 right-4 sm:right-6 z-[160] flex flex-col items-end gap-3">
       {/* Floating Chat Window */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            key="widget-window"
-            initial={{ opacity: 0, scale: 0.92, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 16 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="w-[330px] sm:w-[370px] bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant/30 flex flex-col overflow-hidden"
-            style={{ maxHeight: '500px' }}
-          >
-            {/* Widget Top Header */}
-            <div className="bg-primary px-4 py-3 flex items-center justify-between text-on-primary flex-shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-on-primary/15 flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-[18px]">support_agent</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold truncate">EduTrack AI Support</p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
-                    <span className="text-[10px] text-on-primary/80 font-medium">Online · Ready</span>
-                  </div>
+      {isOpen && (
+        <div
+          className="w-[330px] sm:w-[370px] bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant/30 flex flex-col overflow-hidden transition-all duration-200"
+          style={{ maxHeight: '500px' }}
+        >
+          {/* Widget Top Header */}
+          <div className="bg-primary px-4 py-3 flex items-center justify-between text-on-primary flex-shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-on-primary/15 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-[18px]">support_agent</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold truncate">EduTrack AI Support</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
+                  <span className="text-[10px] text-on-primary/80 font-medium">Online · Ready</span>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-on-primary/15 text-on-primary/80 hover:text-on-primary transition-colors cursor-pointer"
-                aria-label="Close support chat"
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
             </div>
 
-            {/* Messages Scroll Area */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-1 min-h-[200px] max-h-[340px] bg-surface-container-low/20">
-              {messages.map((m) => (
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-on-primary/15 text-on-primary/80 hover:text-on-primary transition-colors cursor-pointer"
+              aria-label="Close support chat"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+
+          {/* Messages Scroll Area */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-1 min-h-[200px] max-h-[340px] bg-surface-container-low/20">
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`flex flex-col mb-2.5 ${m.role === 'user' ? 'items-end' : 'items-start'}`}
+              >
                 <div
-                  key={m.id}
-                  className={`flex flex-col mb-2.5 ${m.role === 'user' ? 'items-end' : 'items-start'}`}
+                  className={`px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[85%] shadow-xs ${
+                    m.role === 'user'
+                      ? 'bg-primary text-on-primary rounded-br-xs font-medium'
+                      : 'bg-surface-container-lowest text-on-surface rounded-bl-xs border border-outline-variant/30'
+                  }`}
                 >
-                  <div
-                    className={`px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[85%] shadow-xs ${
-                      m.role === 'user'
-                        ? 'bg-primary text-on-primary rounded-br-xs font-medium'
-                        : 'bg-surface-container-lowest text-on-surface rounded-bl-xs border border-outline-variant/30'
-                    }`}
-                  >
-                    {m.role === 'user' ? m.text : renderFormattedBotText(m.text)}
+                  {m.role === 'user' ? m.text : renderFormattedBotText(m.text)}
+                </div>
+                <span className="text-[9px] text-outline mt-0.5 px-1">{m.timestamp}</span>
+
+                {m.role === 'bot' && m.quickReplies && m.quickReplies.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5 max-w-[90%]">
+                    {m.quickReplies.map((qr) => (
+                      <button
+                        key={qr}
+                        type="button"
+                        onClick={() => handleSendWidgetMessage(qr)}
+                        className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-primary/30 text-primary bg-surface-container-lowest hover:bg-primary hover:text-on-primary transition-all text-left cursor-pointer"
+                      >
+                        {qr}
+                      </button>
+                    ))}
                   </div>
-                  <span className="text-[9px] text-outline mt-0.5 px-1">{m.timestamp}</span>
+                )}
+              </div>
+            ))}
 
-                  {/* Widget Quick Replies */}
-                  {m.role === 'bot' && m.quickReplies && m.quickReplies.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5 max-w-[90%]">
-                      {m.quickReplies.map((qr) => (
-                        <button
-                          key={qr}
-                          type="button"
-                          onClick={() => handleSendWidgetMessage(qr)}
-                          className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-primary/30 text-primary bg-surface-container-lowest hover:bg-primary hover:text-on-primary transition-all text-left cursor-pointer"
-                        >
-                          {qr}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+            {isTyping && (
+              <div className="flex items-center gap-1.5 text-xs text-on-surface-variant p-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
 
-              {isTyping && (
-                <div className="flex items-center gap-1.5 text-xs text-on-surface-variant p-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Input Footer */}
-            <div className="border-t border-outline-variant/20 p-2.5 bg-surface-container-lowest flex items-center gap-1.5 flex-shrink-0">
-              <input
-                ref={widgetInputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleWidgetKeyDown}
-                placeholder="Ask about fees, courses, exams, library..."
-                disabled={isTyping}
-                className="flex-1 h-9 px-3 rounded-xl bg-surface-container text-on-surface placeholder:text-outline text-xs outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
-              />
-              <button
-                type="button"
-                onClick={() => handleSendWidgetMessage()}
-                disabled={!inputValue.trim() || isTyping}
-                className="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-all flex-shrink-0 shadow-xs cursor-pointer"
-                aria-label="Send message"
-              >
-                <span className="material-symbols-outlined text-[16px]">send</span>
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* Input Footer */}
+          <div className="border-t border-outline-variant/20 p-2.5 bg-surface-container-lowest flex items-center gap-1.5 flex-shrink-0">
+            <input
+              ref={widgetInputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleWidgetKeyDown}
+              placeholder="Ask about fees, courses, exams, library..."
+              disabled={isTyping}
+              className="flex-1 h-9 px-3 rounded-xl bg-surface-container text-on-surface placeholder:text-outline text-xs outline-none focus:ring-1 focus:ring-primary border border-outline-variant/30"
+            />
+            <button
+              type="button"
+              onClick={() => handleSendWidgetMessage()}
+              disabled={!inputValue.trim() || isTyping}
+              className="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-all flex-shrink-0 shadow-xs cursor-pointer"
+              aria-label="Send message"
+            >
+              <span className="material-symbols-outlined text-[16px]">send</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Floating Action Button (FAB) */}
-      <motion.button
+      <button
         type="button"
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.94 }}
         onClick={isOpen ? () => setIsOpen(false) : handleOpenWidget}
-        className="relative w-14 h-14 rounded-2xl bg-primary text-on-primary shadow-xl flex items-center justify-center hover:opacity-95 transition-all border-2 border-surface-container-lowest cursor-pointer"
+        className="relative w-14 h-14 rounded-2xl bg-primary text-on-primary shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-150 border-2 border-surface-container-lowest cursor-pointer"
         aria-label="Toggle student support chat"
       >
         <span className="material-symbols-outlined text-[26px]">
           {isOpen ? 'close' : 'support_agent'}
         </span>
-      </motion.button>
+      </button>
     </div>
   );
 };
