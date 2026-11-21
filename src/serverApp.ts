@@ -28,6 +28,9 @@ import {
   generateSupportChatReply,
   generateTutorReply,
 } from './lib/gemini.ts';
+import { generateRagResponse } from './lib/ragEngine.ts';
+import { globalVectorStore } from './lib/vectorStore.ts';
+import { parseDocument } from './lib/documentParser.ts';
 
 export const app = express();
 
@@ -439,18 +442,122 @@ router.post('/ai/study-plan', async (req, res) => {
   }
 });
 
-router.post('/ai/support-chat', async (req, res) => {
+// RAG & Knowledge Base AI Endpoints
+router.post('/ai/rag/chat', async (req, res) => {
   try {
-    const { message, history, category } = req.body;
+    const { message, history, enableWebSearch, category, documentFilterId } = req.body;
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required.' });
     }
-    const result = await generateSupportChatReply({
+
+    const response = await generateRagResponse({
+      message,
+      history: Array.isArray(history) ? history : [],
+      enableWebSearch: Boolean(enableWebSearch !== false),
+      category: typeof category === 'string' ? category : undefined,
+      documentFilterId: typeof documentFilterId === 'string' ? documentFilterId : undefined,
+    });
+
+    res.json(response);
+  } catch (error: unknown) {
+    console.error('RAG Chat endpoint error:', error);
+    const message = error instanceof Error ? error.message : 'RAG chat service failed.';
+    res.status(500).json({ error: message });
+  }
+});
+
+router.post('/ai/rag/upload', async (req, res) => {
+  try {
+    const { filename, fileBase64, text, category, mimeType } = req.body;
+
+    if (!filename || typeof filename !== 'string') {
+      return res.status(400).json({ error: 'Filename is required.' });
+    }
+
+    let rawBuffer: Buffer;
+    if (fileBase64 && typeof fileBase64 === 'string') {
+      const base64Data = fileBase64.includes(';base64,')
+        ? fileBase64.split(';base64,')[1]
+        : fileBase64;
+      rawBuffer = Buffer.from(base64Data, 'base64');
+    } else if (text && typeof text === 'string') {
+      rawBuffer = Buffer.from(text, 'utf-8');
+    } else {
+      return res.status(400).json({ error: 'File content (fileBase64 or text) is required.' });
+    }
+
+    const parsed = await parseDocument(rawBuffer, filename, mimeType);
+    const docId = `doc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    const savedDoc = await globalVectorStore.addDocument({
+      id: docId,
+      name: parsed.filename,
+      fileType: parsed.fileType,
+      text: parsed.text,
+      category: typeof category === 'string' ? category : 'Uploaded Document',
+    });
+
+    res.status(201).json({
+      success: true,
+      document: savedDoc,
+      stats: globalVectorStore.getStats(),
+    });
+  } catch (error: unknown) {
+    console.error('RAG Document upload error:', error);
+    const message = error instanceof Error ? error.message : 'Document processing failed.';
+    res.status(500).json({ error: message });
+  }
+});
+
+router.get('/ai/rag/documents', async (_req, res) => {
+  try {
+    await globalVectorStore.initialize();
+    const docs = globalVectorStore.getDocuments();
+    const stats = globalVectorStore.getStats();
+    res.json({ documents: docs, stats });
+  } catch (error: unknown) {
+    console.error('Failed to list RAG documents:', error);
+    res.status(500).json({ error: 'Failed to retrieve knowledge documents.' });
+  }
+});
+
+router.delete('/ai/rag/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = globalVectorStore.deleteDocument(id);
+    res.json({ success: deleted, stats: globalVectorStore.getStats() });
+  } catch (error: unknown) {
+    console.error('Failed to delete RAG document:', error);
+    res.status(500).json({ error: 'Failed to delete document.' });
+  }
+});
+
+router.post('/ai/rag/clear', async (_req, res) => {
+  try {
+    globalVectorStore.clearUserDocuments();
+    res.json({ success: true, stats: globalVectorStore.getStats() });
+  } catch (error: unknown) {
+    console.error('Failed to clear knowledge documents:', error);
+    res.status(500).json({ error: 'Failed to clear documents.' });
+  }
+});
+
+router.post('/ai/support-chat', async (req, res) => {
+  try {
+    const { message, history, category, enableWebSearch } = req.body;
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
+
+    // Connect support-chat directly to the RAG & Web Search pipeline
+    const ragResult = await generateRagResponse({
       message,
       history: Array.isArray(history) ? history : [],
       category: typeof category === 'string' ? category : undefined,
+      enableWebSearch: enableWebSearch !== false,
     });
-    res.json(result);
+
+    res.json(ragResult);
   } catch (error: unknown) {
     console.error('Support chat error:', error);
     const message = error instanceof Error ? error.message : 'Support chat service failed.';
