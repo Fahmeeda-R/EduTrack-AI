@@ -25,6 +25,7 @@ import {
   generateAdaptiveStudyPlan,
   generateFacultyRubric,
   generateRubricPrecheck,
+  generateSupportChatReply,
   generateTutorReply,
 } from './lib/gemini.ts';
 
@@ -438,8 +439,26 @@ router.post('/ai/study-plan', async (req, res) => {
   }
 });
 
-router.post('/ai/generate-rubric', async (req, res) => {
+router.post('/ai/support-chat', async (req, res) => {
   try {
+    const { message, history, category } = req.body;
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
+    const result = await generateSupportChatReply({
+      message,
+      history: Array.isArray(history) ? history : [],
+      category: typeof category === 'string' ? category : undefined,
+    });
+    res.json(result);
+  } catch (error: unknown) {
+    console.error('Support chat error:', error);
+    const message = error instanceof Error ? error.message : 'Support chat service failed.';
+    res.status(500).json({ error: message });
+  }
+});
+
+router.post('/ai/generate-rubric', async (req, res) => {  try {
     const { assignmentTitle, course, specText } = req.body;
     const rubric = await generateFacultyRubric({
       assignmentTitle: assignmentTitle || 'Lab Assignment',

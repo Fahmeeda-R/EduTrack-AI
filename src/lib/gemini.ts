@@ -263,6 +263,47 @@ export async function generateAdaptiveStudyPlan(params: {
   });
 }
 
+export async function generateSupportChatReply(params: {
+  message: string;
+  history: Array<{ role: 'user' | 'assistant'; content: string }>;
+  category?: string;
+}) {
+  const historyText = params.history
+    .slice(-8)
+    .map((m) => `${m.role === 'user' ? 'Student' : 'Support'}: ${m.content}`)
+    .join('\n');
+
+  const contents = historyText
+    ? `${historyText}\nStudent: ${params.message}`
+    : `Student: ${params.message}`;
+
+  const parsed = await generateJsonWithRetry<{ reply: string; suggestedFollowups?: string[] }>({
+    contents,
+    systemInstruction: `You are EduTrack Support, a friendly, empathetic AI student support assistant for a university. You help students with academic queries, course registration, fee payments, library services, hostel, scholarships, transcripts, attendance policy, health services, campus facilities, and general university questions. ${params.category ? `The student has selected the category: ${params.category}.` : ''} Keep responses concise (2-4 sentences max), warm, and actionable. Use plain text, avoid heavy markdown. Suggest follow-up questions when helpful.`,
+    fallbackJson: '{"reply":"I\'m here to help! Could you give me a bit more detail so I can assist you better?","suggestedFollowups":[]}',
+    responseSchema: {
+      type: Type.OBJECT,
+      properties: {
+        reply: {
+          type: Type.STRING,
+          description: 'Friendly, concise support response (2-4 sentences).',
+        },
+        suggestedFollowups: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          description: 'Up to 3 short follow-up question suggestions.',
+        },
+      },
+      required: ['reply', 'suggestedFollowups'],
+    },
+  });
+
+  return {
+    reply: parsed.reply || "I'm here to help! Could you give me a bit more detail?",
+    suggestedFollowups: (parsed.suggestedFollowups ?? []).slice(0, 3),
+  };
+}
+
 export async function generateFacultyRubric(params: {
   assignmentTitle: string;
   course: string;

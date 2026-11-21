@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEduTrack } from '../context/EduTrackContext.tsx';
 import { BRAND_LOGO_URL, STUDENT_AVATAR_URL } from '../data/previewSeed.ts';
 import type { ScreenId } from '../types/edutrack.ts';
+import { ChatbotWidget } from './SupportChatbot.tsx';
 
 const SCREEN_TITLES: Record<ScreenId, string> = {
   login: 'Authentication',
@@ -437,6 +438,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <span>{toast.message}</span>
         </div>
       )}
+
+      {/* Floating Chatbot Widget */}
+      <ChatbotWidget />
     </div>
   );
 };
